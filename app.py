@@ -324,9 +324,7 @@ with dynamic_view_col:
                 conf=stream_conf_barrier,
                 verbose=False
             )
-
-rendered_frame_overlay = neural_results_layer.plot() 
-
+             rendered_frame_overlay = neural_results_layer[0].plot()
 # Update UI streaming array element viewport
 frame_render_plane.image(rendered_frame_overlay, channels="BGR", use_container_width=True)
 
