@@ -73,7 +73,7 @@ div.stDownloadButton > button:hover {
 # ---------------- LOAD MODEL ----------------
 @st.cache_resource
 def load_model():
-    return YOLO("helmet_model.pt")
+   return YOLO("final_helmet_detector_v8.pt")
 
 try:
     model = load_model()
