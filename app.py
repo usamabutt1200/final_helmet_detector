@@ -300,18 +300,6 @@ if app_nexus == "Dynamic Video Telemetry":
             type=["mp4", "avi", "mov", "mkv"]
         )
         st.markdown("</div>", unsafe_allow_html=True)
-
-with dynamic_view_col:
-    if uploaded_video_payload is not None:
-        # Interim binary caching array layer to enable localized sequential frame-chunk reading
-        with open("interim_buffer.mp4", "wb") as f:
-            f.write(uploaded_video_payload.read())
-
-        video_telemetry_stream = cv2.VideoCapture("interim_buffer.mp4")
-        frame_render_plane = st.empty()
-
-        st.markdown("### Live Pipeline Decompression Output Stream")
-
 with dynamic_view_col:
     if uploaded_video_payload is not None:
         # Interim binary caching array layer to enable localized sequential frame-chunk reading
@@ -351,9 +339,6 @@ elif app_nexus == "Real-Time Live Feed Stream":
     st.markdown("# 📡 Real-Time Live Feed Neural Stream")
     st.markdown("##### Direct low-latency hardware interface integration. Spawns direct socket interfaces to attached local sensors.")
     st.markdown("<br>", unsafe_allow_html=True)
-
-
-    
     io_controls, output_stream_canvas = st.columns()
     
     with io_controls:
