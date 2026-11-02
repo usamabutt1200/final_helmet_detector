@@ -302,32 +302,29 @@ if app_nexus == "Dynamic Video Telemetry":
         st.markdown("</div>", unsafe_allow_html=True)
 
 with dynamic_view_col:
-if uploaded_video_payload is not None:
+    if uploaded_video_payload is not None:
+        # Interim binary caching array layer to enable localized sequential frame-chunk reading
+        with open("interim_buffer.mp4", "wb") as f:
+            f.write(uploaded_video_payload.read())
 
-### Interim binary caching array layer to enable localized sequential frame-chunk reading
+        video_telemetry_stream = cv2.VideoCapture("interim_buffer.mp4")
+        frame_render_plane = st.empty()
 
-with open("interim_buffer.mp4", "wb") as f:
-f.write(uploaded_video_payload.read()) 
+        st.markdown("### Live Pipeline Decompression Output Stream")
 
-video_telemetry_stream = cv2.VideoCapture("interim_buffer.mp4")
-frame_render_plane = st.empty() 
+        # Asynchronous iterative decompress loop block
+        while video_telemetry_stream.isOpened():
+            ret, temporal_matrix_frame = video_telemetry_stream.read()
+            if not ret:
+                break
 
-st.markdown("### Live Pipeline Decompression Output Stream") 
+            # Active tensor layer parsing iteration across active matrix constraints
+            neural_results_layer = neural_engine.predict(
+                source=temporal_matrix_frame,
+                conf=stream_conf_barrier,
+                verbose=False
+            )
 
-### Asynchronous iterative decompress loop block
-
-while video_telemetry_stream.isOpened():
-ret, temporal_matrix_frame = video_telemetry_stream.read()
-if not ret:
-break 
-
-### Active tensor layer parsing iteration across active matrix constraints
-
-neural_results_layer = neural_engine.predict(
-source=temporal_matrix_frame,
-conf=stream_conf_barrier,
-verbose=False
-)
 rendered_frame_overlay = neural_results_layer.plot() 
 
 # Update UI streaming array element viewport
