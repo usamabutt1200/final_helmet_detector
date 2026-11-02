@@ -77,11 +77,8 @@ def load_model():
 
 try:
     model = load_model()
-except Exception:
-    st.error(
-        "Model load nahi ho saka. "
-        "Check karein ke helmet_model.pt repository mein mojood hai."
-    )
+except Exception as e:
+    st.error(f"Model loading error: {e}")
     st.stop()
 
 # ---------------- HEADER ----------------
