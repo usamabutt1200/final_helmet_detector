@@ -1,3 +1,4 @@
+
 import streamlit as st
 import cv2
 import numpy as np
@@ -276,7 +277,7 @@ if app_nexus == "Dynamic Video Telemetry":
     st.markdown("##### Parse multi-frame cinematic arrays with persistent object coordinate synchronization grids.")
     st.markdown("<br>", unsafe_allow_html=True)
     
-   input_pipeline_col, dynamic_view_col = st.columns(spec=2)
+   input_pipeline_col, dynamic_view_col = st.columns()
     
     with input_pipeline_col:
         st.markdown("<div class='control-card'>", unsafe_allow_html=True)
