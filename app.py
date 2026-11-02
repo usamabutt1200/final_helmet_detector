@@ -301,7 +301,7 @@ if app_nexus == "Dynamic Video Telemetry":
         )
         st.markdown("</div>", unsafe_allow_html=True)
 with dynamic_view_col:
-if uploaded_video_payload is not None:
+ if uploaded_video_payload is not None:
         # Interim binary caching array layer to enable localized sequential frame-chunk reading
         with open("interim_buffer.mp4", "wb") as f:
             f.write(uploaded_video_payload.read())
