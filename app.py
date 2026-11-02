@@ -325,13 +325,11 @@ with dynamic_view_col:
 
             rendered_frame_overlay = neural_results_layer[0].plot()
             frame_render_plane.image(rendered_frame_overlay, channels="BGR")
+             video_telemetry_stream.release()
+            st.success("Cinematic temporal sequence fully computed down to target endpoint matrix parameters.")
 
-        video_telemetry_stream.release()
-
-st.success("Cinematic temporal sequence fully computed down to target endpoint matrix parameters.")
-
-else:
-st.info("System awaiting dynamic continuous binary payload allocation. Provide a target temporal data stream file in the configuration panel.")
+    else:
+        st.info("System awaiting dynamic continuous binary payload allocation. Provide a target temporal data stream file in the configuration panel.")
 
 # ====================================================================
 # WORKSPACE MODULE 4: REAL-TIME LIVE FEED STREAM (WEBCAM LOCK)
@@ -340,6 +338,7 @@ elif app_nexus == "Real-Time Live Feed Stream":
     st.markdown("# 📡 Real-Time Live Feed Neural Stream")
     st.markdown("##### Direct low-latency hardware interface integration. Spawns direct socket interfaces to attached local sensors.")
     st.markdown("<br>", unsafe_allow_html=True)
+
     
     io_controls, output_stream_canvas = st.columns()
     
