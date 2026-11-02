@@ -273,64 +273,69 @@ st.sidebar.caption("• Architecture: YOLOv8 Fused Topology\n• Core IO Pipelin
 # WORKSPACE MODULE 3: DYNAMIC VIDEO TELEMETRY PIPELINE
 # ====================================================================
 if app_nexus == "Dynamic Video Telemetry":
-    st.markdown("# 🎥 Dynamic Video Telemetry Pipeline")
-    st.markdown("##### Parse multi-frame cinematic arrays with persistent object coordinate synchronization grids.")
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-   input_pipeline_col, dynamic_view_col = st.columns()
-    
-    with input_pipeline_col:
-        st.markdown("<div class='control-card'>", unsafe_allow_html=True)
-        st.markdown("### Telemetry Configuration")
-        st.markdown("##### Calibrate classification score barriers across chronological video buffers.")
-        
-        stream_conf_barrier = st.slider(
-            "Inference Detection Confidence Boundary", 
-            min_value=0.20, 
-            max_value=1.00, 
-            value=0.60, 
-            step=0.05
-        )
-        st.markdown("---")
-        
-        uploaded_video_payload = st.file_uploader(
-            "Ingest Temporal Video Sequence Buffer", 
-            type=["mp4", "avi", "mov", "mkv"]
-        )
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-    with dynamic_view_col:
-        if uploaded_video_payload is not None:
-            # Interim binary caching array layer to enable localized sequential frame-chunk reading
-            with open("interim_buffer.mp4", "wb") as f:
-                f.write(uploaded_video_payload.read())
-                
-            video_telemetry_stream = cv2.VideoCapture("interim_buffer.mp4")
-            frame_render_plane = st.empty()
-            
-            st.markdown("### Live Pipeline Decompression Output Stream")
-            
-            # Asynchronous iterative decompress loop block
-            while video_telemetry_stream.isOpened():
-                ret, temporal_matrix_frame = video_telemetry_stream.read()
-                if not ret:
-                    break
-                
-                # Active tensor layer parsing iteration across active matrix constraints
-                neural_results_layer = neural_engine.predict(
-                    source=temporal_matrix_frame, 
-                    conf=stream_conf_barrier, 
-                    verbose=False
-                )
-                rendered_frame_overlay = neural_results_layer[0].plot()
-                
-                # Update UI streaming array element viewport
-                frame_render_plane.image(rendered_frame_overlay, channels="BGR", use_container_width=True)
-            
-            video_telemetry_stream.release()
-            st.success("Cinematic temporal sequence fully computed down to target endpoint matrix parameters.")
-        else:
-            st.info("System awaiting dynamic continuous binary payload allocation. Provide a target temporal data stream file in the configuration panel.")
+st.markdown("# 🎥 Dynamic Video Telemetry Pipeline")
+st.markdown("##### Parse multi-frame cinematic arrays with persistent object coordinate synchronization grids.")
+st.markdown("
+", unsafe_allow_html=True) 
+
+input_pipeline_col, dynamic_view_col = st.columns(spec=2)
+
+with input_pipeline_col:
+st.markdown("<div class='control-card'>", unsafe_allow_html=True)
+st.markdown("### Telemetry Configuration")
+st.markdown("##### Calibrate classification score barriers across chronological video buffers.")
+stream_conf_barrier = st.slider(
+    "Inference Detection Confidence Boundary", 
+    min_value=0.20, 
+    max_value=1.00, 
+    value=0.60, 
+    step=0.05
+)
+st.markdown("---")
+
+uploaded_video_payload = st.file_uploader(
+    "Ingest Temporal Video Sequence Buffer", 
+    type=["mp4", "avi", "mov", "mkv"]
+)
+st.markdown("</div>", unsafe_allow_html=True)
+
+with dynamic_view_col:
+if uploaded_video_payload is not None:
+
+### Interim binary caching array layer to enable localized sequential frame-chunk reading
+
+with open("interim_buffer.mp4", "wb") as f:
+f.write(uploaded_video_payload.read()) 
+
+video_telemetry_stream = cv2.VideoCapture("interim_buffer.mp4")
+frame_render_plane = st.empty() 
+
+st.markdown("### Live Pipeline Decompression Output Stream") 
+
+### Asynchronous iterative decompress loop block
+
+while video_telemetry_stream.isOpened():
+ret, temporal_matrix_frame = video_telemetry_stream.read()
+if not ret:
+break 
+
+### Active tensor layer parsing iteration across active matrix constraints
+
+neural_results_layer = neural_engine.predict(
+source=temporal_matrix_frame,
+conf=stream_conf_barrier,
+verbose=False
+)
+rendered_frame_overlay = neural_results_layer.plot() 
+
+# Update UI streaming array element viewport
+frame_render_plane.image(rendered_frame_overlay, channels="BGR", use_container_width=True)
+
+video_telemetry_stream.release()
+st.success("Cinematic temporal sequence fully computed down to target endpoint matrix parameters.")
+
+else:
+st.info("System awaiting dynamic continuous binary payload allocation. Provide a target temporal data stream file in the configuration panel.")
 
 # ====================================================================
 # WORKSPACE MODULE 4: REAL-TIME LIVE FEED STREAM (WEBCAM LOCK)
