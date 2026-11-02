@@ -312,23 +312,22 @@ with dynamic_view_col:
 
         st.markdown("### Live Pipeline Decompression Output Stream")
 
-        # Asynchronous iterative decompress loop block
         while video_telemetry_stream.isOpened():
             ret, temporal_matrix_frame = video_telemetry_stream.read()
             if not ret:
                 break
 
-            # Active tensor layer parsing iteration across active matrix constraints
             neural_results_layer = neural_engine.predict(
                 source=temporal_matrix_frame,
                 conf=stream_conf_barrier,
                 verbose=False
             )
-             rendered_frame_overlay = neural_results_layer[0].plot()
-# Update UI streaming array element viewport
-frame_render_plane.image(rendered_frame_overlay, channels="BGR", use_container_width=True)
 
-video_telemetry_stream.release()
+            rendered_frame_overlay = neural_results_layer[0].plot()
+            frame_render_plane.image(rendered_frame_overlay, channels="BGR")
+
+        video_telemetry_stream.release()
+
 st.success("Cinematic temporal sequence fully computed down to target endpoint matrix parameters.")
 
 else:
