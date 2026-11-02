@@ -1,128 +1,96 @@
-                "▶ Process Video",
-                type="primary",
-                use_container_width=True,
-            )
-
-            if process_video:
-                temp_video_path = None
-                capture = None
-
-                try:
-                    video_bytes = uploaded_video.getvalue()
-
-                    with tempfile.NamedTemporaryFile(
-                        delete=False,
-                        suffix=os.path.splitext(uploaded_video.name)[1] or ".mp4",
-                    ) as temp_video:
-                        temp_video.write(video_bytes)
-                        temp_video_path = temp_video.name
-
-                    capture = cv2.VideoCapture(temp_video_path)
-
-                    if not capture.isOpened():
-                        st.error("The uploaded video could not be opened.")
-                    else:
-                        total_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
-                        total_frames = max(total_frames, 1)
-
-                        progress = st.progress(0)
-                        status = st.empty()
-                        frame_display = st.empty()
-
-                        frame_number = 0
-
-                        while True:
-                            success, frame = capture.read()
-
-                            if not success:
-                                break
-
-                            predictions = neural_engine.predict(
-                                source=frame,
-                                conf=video_confidence,
-                                verbose=False,
-                            )
-
-                            annotated_frame = predictions[0].plot()
-                            annotated_rgb = cv2.cvtColor(
-                                annotated_frame,
-                                cv2.COLOR_BGR2RGB,
-                            )
-
-                            frame_display.image(
-                                annotated_rgb,
-                                channels="RGB",
-                                use_container_width=True,
-                            )
-
-                            frame_number += 1
-                            progress.progress(
-                                min(frame_number / total_frames, 1.0)
-                            )
-                            status.write(
-                                f"Processed frame {frame_number} of {total_frames}"
-                            )
-
-                        st.success(
-                            f"Video processing complete. Total frames processed: {frame_number}"
-                        )
-
-                except Exception as error:
-                    st.error(f"Video processing failed: {error}")
-
-                finally:
-                    if capture is not None:
-                        capture.release()
-
-                    if temp_video_path and os.path.exists(temp_video_path):
-                        os.remove(temp_video_path)
+import streamlit as st
+import cv2
+import numpy as np
+import tempfile
+import os
+import plotly.graph_objects as go
+from PIL import Image
+from ultralytics import YOLO
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, WebRtcMode
+import av
 
 
 # ============================================================
-# WORKSPACE 4: BROWSER LIVE CAMERA
+# PAGE CONFIGURATION
 # ============================================================
-elif workspace == "Real-Time Live Feed Stream":
-    st.title("📡 Real-Time Live Camera Detection")
-    st.caption(
-        "Use your browser camera to run helmet detection on a live video stream."
-    )
+st.set_page_config(
+    page_title="Vanguard Helmet Detection Suite",
+    page_icon="🛡️",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-    live_confidence = st.slider(
-        "Live detection confidence",
-        min_value=0.10,
-        max_value=1.00,
-        value=0.60,
-        step=0.05,
-        key="live_confidence",
-    )
 
-    class HelmetVideoProcessor(VideoProcessorBase):
-        def __init__(self):
-            self.confidence = live_confidence
+# ============================================================
+# CUSTOM CSS
+# ============================================================
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-color: #0B0E14;
+        color: #E2E8F0;
+        font-family: Inter, system-ui, sans-serif;
+    }
+    div[data-testid="stSidebar"] {
+        background-color: #121620;
+        border-right: 1px solid #1E293B;
+    }
+    .metric-card, .control-card {
+        background: linear-gradient(145deg, #161D2A 0%, #0F131D 100%);
+        border: 1px solid #243046;
+        border-radius: 14px;
+        padding: 22px;
+        box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.35);
+    }
+    .metric-card:hover {
+        border-color: #00F5D4;
+        box-shadow: 0 0 20px rgba(0, 245, 212, 0.12);
+    }
+    .glow-text {
+        color: #00F5D4;
+        text-shadow: 0 0 15px rgba(0, 245, 212, 0.25);
+        font-weight: 800;
+        font-size: 2rem;
+        margin: 8px 0;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-        def recv(self, frame):
-            image = frame.to_ndarray(format="bgr24")
 
-            predictions = neural_engine.predict(
-                source=image,
-                conf=self.confidence,
-                verbose=False,
-            )
+# ============================================================
+# MODEL LOADING
+# ============================================================
+@st.cache_resource
+def load_model():
+    """Load the custom helmet detector once and cache it."""
+    model_path = "final_helmet_detector_v8.pt"
 
-            annotated = predictions[0].plot()
-            return av.VideoFrame.from_ndarray(annotated, format="bgr24")
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(
+            f"Model file '{model_path}' was not found. "
+            "Place it in the same folder as app.py."
+        )
 
-    webrtc_streamer(
-        key="vanguard-helmet-live",
-        mode=WebRtcMode.SENDRECV,
-        video_processor_factory=HelmetVideoProcessor,
-        media_stream_constraints={
-            "video": True,
-            "audio": False,
-        },
-        async_processing=True,
-    )
+    return YOLO(model_path)
 
-    st.caption(
-        "If the camera does not start, allow camera permission in your browser. "
-        "Live camera access requires HTTPS when hosted online."
+
+try:
+    neural_engine = load_model()
+    model_ready = True
+except Exception as error:
+    neural_engine = None
+    model_ready = False
+    model_error = str(error)
+
+
+# ============================================================
+# SIDEBAR NAVIGATION
+# ============================================================
+st.sidebar.markdown(
+    "<h1 class='glow-text' style='text-align:center;'>VANGUARD OS</h1>",
+    unsafe_allow_html=True,
+)
+st.sidebar.markdown(
