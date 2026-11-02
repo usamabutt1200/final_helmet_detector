@@ -1,7 +1,6 @@
---extra-index-url https://pytorch.org
-torch==2.2.0
-torchvision==0.17.0
-ultralytics==8.3.40
-streamlit==1.38.0
-plotly==5.24.1
-opencv-python-headless==4.10.0.84
+streamlit
+setuptools
+opencv-python-headless
+ultralytics
+streamlit_webrtc
+ffmpeg-python
