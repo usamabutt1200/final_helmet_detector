@@ -328,8 +328,7 @@ with dynamic_view_col:
         # Loop khatam hone ke baad video ko release karna hai
         video_telemetry_stream.release()
         st.success("Cinematic temporal sequence fully computed down to target endpoint matrix parameters.")
-
-    else:
+else:
         st.info("System awaiting dynamic continuous binary payload allocation. Provide a target temporal data stream file in the configuration panel.")
 
 # ====================================================================
