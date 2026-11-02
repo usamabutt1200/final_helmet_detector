@@ -273,31 +273,33 @@ st.sidebar.caption("• Architecture: YOLOv8 Fused Topology\n• Core IO Pipelin
 # WORKSPACE MODULE 3: DYNAMIC VIDEO TELEMETRY PIPELINE
 # ====================================================================
 if app_nexus == "Dynamic Video Telemetry":
-st.markdown("# 🎥 Dynamic Video Telemetry Pipeline")
-st.markdown("##### Parse multi-frame cinematic arrays with persistent object coordinate synchronization grids.")
-st.markdown("
-", unsafe_allow_html=True) 
+    st.markdown("# 🎥 Dynamic Video Telemetry Pipeline")
+    st.markdown("##### Parse multi-frame cinematic arrays with persistent object coordinate synchronization grids.")
+    
+    # Yahan khali string ko theek kar diya gaya hai (Agar koi custom HTML space chahiye thi toh "")
+    st.markdown("", unsafe_allow_html=True) 
 
-input_pipeline_col, dynamic_view_col = st.columns(spec=2)
+    input_pipeline_col, dynamic_view_col = st.columns(spec=2)
 
-with input_pipeline_col:
-st.markdown("<div class='control-card'>", unsafe_allow_html=True)
-st.markdown("### Telemetry Configuration")
-st.markdown("##### Calibrate classification score barriers across chronological video buffers.")
-stream_conf_barrier = st.slider(
-    "Inference Detection Confidence Boundary", 
-    min_value=0.20, 
-    max_value=1.00, 
-    value=0.60, 
-    step=0.05
-)
-st.markdown("---")
+    with input_pipeline_col:
+        st.markdown("<div class='control-card'>", unsafe_allow_html=True)
+        st.markdown("### Telemetry Configuration")
+        st.markdown("##### Calibrate classification score barriers across chronological video buffers.")
+        
+        stream_conf_barrier = st.slider(
+            "Inference Detection Confidence Boundary", 
+            min_value=0.20, 
+            max_value=1.00, 
+            value=0.60, 
+            step=0.05
+        )
+        st.markdown("---")
 
-uploaded_video_payload = st.file_uploader(
-    "Ingest Temporal Video Sequence Buffer", 
-    type=["mp4", "avi", "mov", "mkv"]
-)
-st.markdown("</div>", unsafe_allow_html=True)
+        uploaded_video_payload = st.file_uploader(
+            "Ingest Temporal Video Sequence Buffer", 
+            type=["mp4", "avi", "mov", "mkv"]
+        )
+        st.markdown("</div>", unsafe_allow_html=True)
 
 with dynamic_view_col:
 if uploaded_video_payload is not None:
