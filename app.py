@@ -276,7 +276,7 @@ if app_nexus == "Dynamic Video Telemetry":
     st.markdown("##### Parse multi-frame cinematic arrays with persistent object coordinate synchronization grids.")
     st.markdown("<br>", unsafe_allow_html=True)
     
-    input_pipeline_col, dynamic_view_col = st.columns()
+   input_pipeline_col, dynamic_view_col = st.columns(spec=2)
     
     with input_pipeline_col:
         st.markdown("<div class='control-card'>", unsafe_allow_html=True)
