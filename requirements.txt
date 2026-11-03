@@ -1,8 +1,5 @@
-streamlit>=1.22.0
-setuptools
-opencv-python-headless
+streamlit
 ultralytics
-streamlit_webrtc
-ffmpeg-python
-plotly
-
+opencv-python-headless==4.10.0.84
+numpy==1.26.4
+pillow
