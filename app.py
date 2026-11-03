@@ -1,16 +1,10 @@
-
 import streamlit as st
 import cv2
-import av
 import tempfile
 import numpy as np
+import os
 from PIL import Image
 from ultralytics import YOLO
-from streamlit_webrtc import (
-    webrtc_streamer,
-    VideoProcessorBase,
-    WebRtcMode
-)
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -73,13 +67,32 @@ div.stDownloadButton > button:hover {
 # ---------------- LOAD MODEL ----------------
 @st.cache_resource
 def load_model():
-   return YOLO("final_helmet_detector_v8.pt")
+    return YOLO("final_helmet_detector_v8.pt")
 
 try:
     model = load_model()
 except Exception as e:
     st.error(f"Model loading error: {e}")
     st.stop()
+
+
+# ---------------- DETECTION FUNCTION ----------------
+def detect_image(image):
+    result = model.predict(
+        image,
+        conf=0.35,
+        imgsz=640,
+        verbose=False
+    )[0]
+
+    annotated = result.plot()
+    annotated = cv2.cvtColor(
+        annotated,
+        cv2.COLOR_BGR2RGB
+    )
+
+    return result, annotated
+
 
 # ---------------- HEADER ----------------
 st.markdown("""
@@ -91,6 +104,7 @@ st.markdown("""
     </p>
 </div>
 """, unsafe_allow_html=True)
+
 
 # ---------------- SIDEBAR ----------------
 st.sidebar.markdown("# 🪖 HELMET AI")
@@ -108,6 +122,7 @@ page = st.sidebar.radio(
 
 st.sidebar.markdown("---")
 st.sidebar.caption("Powered by YOLOv8")
+
 
 # ---------------- DASHBOARD ----------------
 if page == "Dashboard":
@@ -129,17 +144,18 @@ if page == "Dashboard":
         st.markdown("""
         <div class="card">
             <h2>🎥 Video</h2>
-            <p>Analyze videos and download results.</p>
+            <p>Upload, process and download videos.</p>
         </div>
         """, unsafe_allow_html=True)
 
     with col3:
         st.markdown("""
         <div class="card">
-            <h2>📡 Live</h2>
-            <p>Detect helmets through your webcam.</p>
+            <h2>📸 Camera</h2>
+            <p>Capture images using your camera.</p>
         </div>
         """, unsafe_allow_html=True)
+
 
 # ---------------- IMAGE DETECTION ----------------
 elif page == "Image Detection":
@@ -159,17 +175,8 @@ elif page == "Image Detection":
 
             with st.spinner("Analyzing image..."):
 
-                result = model.predict(
-                    np.array(image),
-                    conf=0.35,
-                    imgsz=640,
-                    verbose=False
-                )[0]
-
-                annotated = result.plot()
-                annotated = cv2.cvtColor(
-                    annotated,
-                    cv2.COLOR_BGR2RGB
+                result, annotated = detect_image(
+                    np.array(image)
                 )
 
             col1, col2 = st.columns(2)
@@ -198,6 +205,7 @@ elif page == "Image Detection":
                         f"**{label}** — {confidence:.1f}% confidence"
                     )
 
+
 # ---------------- VIDEO DETECTION ----------------
 elif page == "Video Detection":
 
@@ -208,134 +216,176 @@ elif page == "Video Detection":
         type=["mp4", "avi", "mov", "mkv"]
     )
 
-    if uploaded_video and st.button("Start Video Detection"):
+    if uploaded_video:
 
-        with st.spinner("Processing video... Please wait"):
+        if st.button("Start Video Detection"):
 
-            with tempfile.NamedTemporaryFile(
-                delete=False,
-                suffix=".mp4"
-            ) as input_file:
+            input_path = None
+            output_path = None
+            cap = None
+            writer = None
 
-                input_file.write(uploaded_video.getvalue())
-                input_path = input_file.name
+            try:
+                with st.spinner("Processing video... Please wait"):
 
-            cap = cv2.VideoCapture(input_path)
+                    with tempfile.NamedTemporaryFile(
+                        delete=False,
+                        suffix=".mp4"
+                    ) as input_file:
 
-            fps = cap.get(cv2.CAP_PROP_FPS)
+                        input_file.write(uploaded_video.getvalue())
+                        input_path = input_file.name
 
-            if not fps or fps <= 0:
-                fps = 25
+                    cap = cv2.VideoCapture(input_path)
 
-            width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                    if not cap.isOpened():
+                        raise ValueError("Uploaded video could not be opened.")
 
-            output_path = tempfile.NamedTemporaryFile(
-                delete=False,
-                suffix=".mp4"
-            ).name
+                    fps = cap.get(cv2.CAP_PROP_FPS)
 
-            writer = cv2.VideoWriter(
-                output_path,
-                cv2.VideoWriter_fourcc(*"mp4v"),
-                fps,
-                (width, height)
-            )
+                    if not fps or fps <= 0:
+                        fps = 25
 
-            total_frames = int(
-                cap.get(cv2.CAP_PROP_FRAME_COUNT)
-            )
-
-            progress = st.progress(0)
-            frame_count = 0
-
-            while cap.isOpened():
-
-                ret, frame = cap.read()
-
-                if not ret:
-                    break
-
-                result = model.predict(
-                    frame,
-                    conf=0.35,
-                    imgsz=640,
-                    verbose=False
-                )[0]
-
-                writer.write(result.plot())
-                frame_count += 1
-
-                if total_frames > 0:
-                    progress.progress(
-                        min(frame_count / total_frames, 1.0)
+                    width = int(
+                        cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+                    )
+                    height = int(
+                        cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
                     )
 
-            cap.release()
-            writer.release()
+                    if width <= 0 or height <= 0:
+                        raise ValueError("Invalid video dimensions.")
 
-        st.success("Video detection completed!")
+                    output_file = tempfile.NamedTemporaryFile(
+                        delete=False,
+                        suffix=".mp4"
+                    )
+                    output_path = output_file.name
+                    output_file.close()
 
-        with open(output_path, "rb") as file:
-            video_bytes = file.read()
+                    writer = cv2.VideoWriter(
+                        output_path,
+                        cv2.VideoWriter_fourcc(*"mp4v"),
+                        fps,
+                        (width, height)
+                    )
 
-        st.video(video_bytes)
+                    if not writer.isOpened():
+                        raise ValueError("Could not create processed video.")
 
-        st.download_button(
-            "⬇️ Download Processed Video",
-            data=video_bytes,
-            file_name="helmet_detection_result.mp4",
-            mime="video/mp4"
-        )
+                    total_frames = int(
+                        cap.get(cv2.CAP_PROP_FRAME_COUNT)
+                    )
 
-# ---------------- LIVE DETECTION ----------------
+                    progress = st.progress(0)
+                    frame_count = 0
+
+                    while True:
+
+                        ret, frame = cap.read()
+
+                        if not ret:
+                            break
+
+                        result = model.predict(
+                            frame,
+                            conf=0.35,
+                            imgsz=640,
+                            verbose=False
+                        )[0]
+
+                        writer.write(result.plot())
+                        frame_count += 1
+
+                        if total_frames > 0:
+                            progress.progress(
+                                min(frame_count / total_frames, 1.0)
+                            )
+
+                    cap.release()
+                    cap = None
+
+                    writer.release()
+                    writer = None
+
+                    if frame_count == 0:
+                        raise ValueError("No frames found in uploaded video.")
+
+                st.success("Video detection completed!")
+
+                with open(output_path, "rb") as file:
+                    video_bytes = file.read()
+
+                st.download_button(
+                    label="⬇️ Download Processed Video",
+                    data=video_bytes,
+                    file_name="helmet_detection_result.mp4",
+                    mime="video/mp4"
+                )
+
+            except Exception as e:
+                st.error(f"Video processing error: {e}")
+
+            finally:
+                if cap is not None:
+                    cap.release()
+
+                if writer is not None:
+                    writer.release()
+
+                if input_path and os.path.exists(input_path):
+                    os.remove(input_path)
+
+                # Output file download ke liye zaroori hai,
+                # is liye isay yahan delete nahi karna.
+
+
+# ---------------- CAMERA DETECTION ----------------
 elif page == "Live Detection":
 
-    st.title("📡 Live Helmet Detection")
-    st.write("Start your webcam to detect helmets.")
+    st.title("📸 Camera Detection")
+    st.write("Open your camera and capture an image for detection.")
 
-    class HelmetProcessor(VideoProcessorBase):
+    camera_image = st.camera_input("Open Camera")
 
-        def __init__(self):
-            self.model = model
+    if camera_image:
 
-        def recv(self, frame):
+        image = Image.open(camera_image).convert("RGB")
 
-            image = frame.to_ndarray(format="bgr24")
+        if st.button("Run Camera Detection"):
 
-            result = self.model.predict(
-                image,
-                conf=0.35,
-                imgsz=640,
-                verbose=False
-            )[0]
+            with st.spinner("Analyzing captured image..."):
 
-            annotated = result.plot()
+                result, annotated = detect_image(
+                    np.array(image)
+                )
 
-            return av.VideoFrame.from_ndarray(
-                annotated,
-                format="bgr24"
-            )
+            col1, col2 = st.columns(2)
 
-    webrtc_streamer(
-        key="helmet-live",
-        mode=WebRtcMode.SENDRECV,
-        video_processor_factory=HelmetProcessor,
-        media_stream_constraints={
-            "video": True,
-            "audio": False
-        },
-        rtc_configuration={
-            "iceServers": [
-                {
-                    "urls": [
-                        "stun:stun.l.google.com:19302"
-                    ]
-                }
-            ]
-        },
-        async_processing=True
-    )
+            with col1:
+                st.subheader("Captured Image")
+                st.image(image, use_container_width=True)
+
+            with col2:
+                st.subheader("Detection Result")
+                st.image(annotated, use_container_width=True)
+
+            st.subheader("Detection Details")
+
+            if result.boxes is None or len(result.boxes) == 0:
+                st.info("No helmets detected.")
+
+            else:
+                for box in result.boxes:
+
+                    class_id = int(box.cls[0])
+                    confidence = float(box.conf[0]) * 100
+                    label = model.names[class_id]
+
+                    st.write(
+                        f"**{label}** — {confidence:.1f}% confidence"
+                    )
+
 
 # ---------------- FOOTER ----------------
 st.markdown("---")
