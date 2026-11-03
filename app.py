@@ -61,6 +61,39 @@ div.stDownloadButton > button:hover {
     color: #aab6ca;
     font-size: 14px;
 }
+/* PREMIUM SIDEBAR */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #101a2b, #080d18);
+    border-right: 1px solid #34435b;
+}
+
+[data-testid="stSidebar"] h1 {
+    color: #f5c76b !important;
+    font-size: 27px;
+    font-weight: 800;
+}
+
+[data-testid="stSidebar"] label {
+    color: #d5dbea !important;
+    font-size: 15px;
+}
+
+[data-testid="stSidebar"] [role="radiogroup"] {
+    gap: 12px;
+}
+
+[data-testid="stSidebar"] [role="radiogroup"] label {
+    background: #17243a;
+    border: 1px solid #34435b;
+    border-radius: 10px;
+    padding: 12px;
+    transition: 0.2s ease;
+}
+
+[data-testid="stSidebar"] [role="radiogroup"] label:hover {
+    background: #263953;
+    border-color: #f5c76b;
+}
 </style>
 """, unsafe_allow_html=True)
 
