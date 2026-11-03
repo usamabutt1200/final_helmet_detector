@@ -113,7 +113,7 @@ except Exception as e:
 def detect_image(image):
     result = model.predict(
         image,
-        conf=0.35,
+        conf=0.20,
         imgsz=640,
         verbose=False
     )[0]
